@@ -7,6 +7,7 @@ import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
 import CreatePostPage from "./pages/CreatePostPage";
 import PostPage from "./pages/PostPage";
+import EditPostPage from "./pages/EditPostPage";
 
 
 
@@ -37,6 +38,9 @@ function App() {
 
       {/* Single Post */}
       <Route path="/post/:id" element={<PostPage/>}/>
+
+      {/* Edit Post page */}
+      <Route path="/edit/:id" element={<EditPostPage/>}/>
 
       </Route>
 

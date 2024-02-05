@@ -22,7 +22,7 @@ export default function Post({
 }: Props) {
   console.log(image);
   return (
-    <div className="grid grid-cols-2 gap-4 mb-[2.5rem]">
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-[2.5rem]">
       <div className="">
         <Link to={`/post/${id}`}>
           <img
@@ -42,7 +42,7 @@ export default function Post({
           </a>
           <time>{format(createdAt, "MMM d, yyyy")}</time>
         </p>
-        <p className="mx-0 leading-[1.4rem]">{content}</p>
+        <p className="mx-0 leading-[1.4rem]">{summary}</p>
       </div>
     </div>
   );

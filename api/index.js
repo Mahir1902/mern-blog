@@ -20,7 +20,7 @@ const app = express();
 app.use(express.json());
 app.use(cors({ credentials: true, origin: "http://localhost:5173" }));
 app.use(cookieParser());
-app.use('/uploads', express.static(__dirname + "/uploads"));
+app.use("/uploads", express.static(__dirname + "/uploads"));
 
 // routes
 
@@ -34,7 +34,7 @@ app.get("/profile", (req, res) => {
     res.json(payload);
   });
   // console.log(token)
-  console.log(__dirname)
+  console.log(__dirname);
 });
 
 // Refactor to different file
@@ -60,29 +60,82 @@ app.post("/create", upload.single("file"), async (req, res) => {
     if (err) throw err;
 
     //Create the post
-  const { title, summary, content } = req.body;
+    const { title, summary, content } = req.body;
 
-  const postDoc = await Post.create({
-    title,
-    summary,
-    content,
-    image: `uploads/${originalname}`,
-    author: payload.id
+    const postDoc = await Post.create({
+      title,
+      summary,
+      content,
+      image: `uploads/${originalname}`,
+      author: payload.id,
+    });
+
+    res.status(StatusCodes.CREATED).json({ postDoc });
   });
-  
-  res.status(StatusCodes.CREATED).json({ postDoc });
-    
-  })
-
-
-  
 });
 
 app.get("/post", async (req, res) => {
-  const posts = await Post.find().populate("author", ['username']).limit(10).sort({createdAt: -1});
+  const posts = await Post.find()
+    .populate("author", ["username"])
+    .limit(10)
+    .sort({ createdAt: -1 });
   res.json(posts);
 });
 
+app.get("/post/:id", async (req, res) => {
+  const { id } = req.params;
+  const post = await Post.findById(id).populate("author", ["username"]);
+  res.json(post);
+});
+
+app.put("/post/:id", upload.single("file"), async (req, res) => {
+
+    const { id } = req.params;
+
+    let newPath = null
+
+  if (req.file) {
+    const { originalname, path } = req.file;
+    fs.renameSync(path, `uploads/${originalname}`);
+    newPath = `uploads/${originalname}`
+  }
+
+  const token = req.cookies.jwt;
+  jwt.verify(token, process.env.JWT_SECRET, {}, async (err, payload) => {
+    if (err) throw err;
+
+    const { title, summary, content } = req.body;
+
+    const postDoc = await Post.findById(id)
+
+    const isAuthor = postDoc.author.toString() === payload.id
+
+    if(!isAuthor) {
+        res.status(StatusCodes.UNAUTHORIZED).json({message: "You are not the author of this post"})
+    }
+
+    await postDoc.updateOne({
+        title,
+        summary,
+        content,
+        image: newPath ? newPath : postDoc.image
+    })
+    
+    //Create the post
+    // const { title, summary, content } = req.body;
+
+    // const postDoc = await Post.create({
+    //   title,
+    //   summary,
+    //   content,
+    //   image: `uploads/${originalname}`,
+    //   author: payload.id,
+    // });
+
+    res.json(postDoc);
+  });
+
+});
 
 
 app.post("/logout", (req, res) => {
